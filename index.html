@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0B0B0F" />
+<title>Privacy Policy — Kairo</title>
+<meta name="description" content="Privacy policy for Kairo, the personal-finance app that measures your money in hours of work, runs offline and keeps everything on your device." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Tomados tal cual de src/ui/theme/theme.ts (tema oscuro), con el fondo un
+       punto más profundo para que el resplandor ámbar tenga dónde brillar. */
+    --bg-deep:      #060608;
+    --bg:           #0B0B0F;
+    --surface:      #14141A;
+    --raised:       #1C1C24;
+
+    --card:         rgba(20, 20, 26, 0.72);
+    --hair:         rgba(255, 255, 255, 0.10);
+    --hair-strong:  rgba(255, 255, 255, 0.24);
+
+    --text:         #F4F4F7;
+    --text-mid:     #A2A2B2;
+    --text-dim:     #828296;
+
+    /* Ámbar: el tiempo. Verde: el dinero que ese tiempo genera. La regla de
+       color de la app es que el color SIGNIFICA algo, y aquí se respeta. */
+    --amber:        #FFB020;
+    --amber-deep:   #B87400;
+    --amber-pale:   #FFD98A;
+    --amber-muted:  #3A2C10;
+    --green:        #3DD68C;
+    --info:         #6E9BFF;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    font-size: 15.5px;
+    line-height: 1.78;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: var(--bg-deep);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     LA ESCENA — el tiempo convirtiéndose en dinero
+
+     La tesis de Kairo es literalmente esa, así que el fondo la dibuja en
+     lugar de decorar por decorar: arriba, esferas de reloj girando; abajo,
+     un campo de barras que respira, como las horas acumulándose en dinero.
+     ══════════════════════════════════════════════════════════════ */
+  .scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+
+  .scene-sky {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 120% 70% at 50% -10%, rgba(255,176,32,.16) 0%, transparent 62%),
+      linear-gradient(180deg, #0A0A0E 0%, #0B0B10 40%, #0A0C0F 72%, #08100D 100%);
+  }
+
+  /* El mismo resplandor ámbar que preside la pantalla de pago de la app,
+     respirando igual de despacio. */
+  .scene-glow {
+    position: absolute;
+    top: -260px; left: 50%;
+    width: 1000px; height: 620px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center,
+      rgba(255,176,32,.26) 0%, rgba(255,176,32,.10) 40%, transparent 70%);
+    animation: glow-breathe 7s ease-in-out infinite alternate;
+  }
+  @keyframes glow-breathe {
+    from { opacity: .72; transform: translateX(-50%) scale(1); }
+    to   { opacity: 1;   transform: translateX(-50%) scale(1.1); }
+  }
+
+  .scene-dials { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* Las marcas de la esfera: un punteado sobre una circunferencia. Tres
+     anillos a distinta velocidad, que es lo que da profundidad. */
+  .dial { fill: none; stroke: var(--amber); stroke-linecap: round; }
+
+  .hand { stroke: var(--amber-pale); stroke-linecap: round; opacity: .16; }
+
+  /* El campo de horas del fondo inferior. */
+  .hours {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 40vh;
+    display: flex; align-items: flex-end; gap: 5px;
+    padding: 0 1.5vw;
+    opacity: .55;
+  }
+  .hour-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    transform-origin: bottom;
+    background: linear-gradient(180deg, rgba(255,176,32,.34) 0%, rgba(61,214,140,.10) 55%, transparent 100%);
+    animation: hour-grow var(--dur, 6s) ease-in-out infinite alternate;
+  }
+  @keyframes hour-grow {
+    from { transform: scaleY(var(--lo, .82)); }
+    to   { transform: scaleY(var(--hi, 1.06)); }
+  }
+
+  /* Chispas: dinero apareciendo. Verde y ámbar, nada más. */
+  .sparks { position: absolute; inset: 0; }
+  .spark {
+    position: absolute; border-radius: 50%;
+    animation: flicker var(--dur, 4s) ease-in-out infinite alternate;
+  }
+  @keyframes flicker {
+    from { opacity: var(--lo, .12); transform: scale(1); }
+    to   { opacity: var(--hi, .7);  transform: scale(1.6); }
+  }
+
+  /* Velo: apaga la escena bajo el contenido para que mande el texto. */
+  .scene-veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(6,6,8,.30) 0%, rgba(6,6,8,.66) 42%, rgba(6,6,8,.86) 100%);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ESTRUCTURA
+     ══════════════════════════════════════════════════════════════ */
+  .wrapper { position: relative; z-index: 10; max-width: 840px; margin: 0 auto; padding: 0 24px 90px; }
+
+  /* Selector de idioma flotante */
+  .langswitch {
+    position: fixed; top: 18px; right: 18px; z-index: 50;
+    display: flex; gap: 3px; padding: 4px;
+    background: rgba(14, 14, 19, .74);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 6px 22px rgba(0,0,0,.45);
+    transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .3s;
+  }
+  .langswitch button {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: .09em;
+    border: 0; cursor: pointer; padding: 6px 14px; border-radius: 999px;
+    background: transparent; color: var(--text-dim);
+    transition: color .2s, background .2s;
+  }
+  .langswitch button:hover { color: var(--text-mid); }
+  .langswitch button[aria-pressed="true"] {
+    background: linear-gradient(135deg, var(--amber-deep), var(--amber));
+    color: #0B0B0F;
+    box-shadow: 0 2px 12px rgba(255,176,32,.4);
+  }
+
+  /* Se aparta al bajar y vuelve al subir.
+
+     Es un control flotante sobre un documento de texto: tarde o temprano
+     acaba encima de un título, y un título medio tapado no parece un control
+     encima, parece la página rota. Bajando se está leyendo y estorba; subiendo
+     se está navegando y hace falta. Si el script no llega a ejecutarse se queda
+     visible, que es el comportamiento de siempre. */
+  .langswitch.tucked {
+    transform: translateY(-140%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     CABECERA
+     ══════════════════════════════════════════════════════════════ */
+  header { padding: 74px 0 46px; text-align: center; animation: fade-down 1s cubic-bezier(.22,1,.36,1) both; }
+
+  .mark {
+    width: 106px; height: 106px; margin: 0 auto 22px;
+    border-radius: 28px;
+    background: linear-gradient(150deg, #8A5600 0%, #D98A00 52%, #FFB020 100%);
+    display: grid; place-items: center;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.14),
+      0 18px 46px rgba(0,0,0,.6),
+      0 0 76px rgba(255,176,32,.26);
+    animation: mark-float 7s ease-in-out infinite alternate;
+  }
+  @keyframes mark-float {
+    from { transform: translateY(0);     box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 18px 46px rgba(0,0,0,.6),  0 0 76px rgba(255,176,32,.22); }
+    to   { transform: translateY(-11px); box-shadow: 0 0 0 1px rgba(255,255,255,.22), 0 30px 58px rgba(0,0,0,.5),  0 0 104px rgba(255,176,32,.36); }
+  }
+
+  .app-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem; font-weight: 700; letter-spacing: -.02em;
+    color: #fff;
+    text-shadow: 0 2px 26px rgba(0,0,0,.6), 0 0 64px rgba(255,176,32,.3);
+  }
+  .app-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: .72rem; font-weight: 500; letter-spacing: .34em; text-transform: uppercase;
+    color: rgba(255,217,138,.6);
+    margin: 4px 0 26px;
+  }
+
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 5.4vw, 3.05rem);
+    font-weight: 600; letter-spacing: -.025em; line-height: 1.12;
+    color: #fff;
+    text-shadow: 0 2px 34px rgba(0,0,0,.5);
+    margin-bottom: 18px;
+  }
+
+  .date-badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 7px 20px; border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(8px);
+    font-family: 'Outfit', sans-serif;
+    font-size: .7rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(244,244,247,.78);
+  }
+  .date-badge::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: var(--green); box-shadow: 0 0 10px var(--green);
+    animation: blink 2.2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .18 } }
+
+  /* ══════════════════════════════════════════════════════════════
+     NAVEGACIÓN RÁPIDA
+     ══════════════════════════════════════════════════════════════ */
+  .nav-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 34px; animation: fade-up .85s .3s cubic-bezier(.22,1,.36,1) both; }
+  .nav-pills a {
+    font-family: 'Outfit', sans-serif;
+    font-size: .68rem; font-weight: 500; letter-spacing: .08em;
+    color: var(--text-mid); text-decoration: none;
+    padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--hair);
+    background: rgba(20, 20, 26, .62);
+    backdrop-filter: blur(6px);
+    transition: all .24s;
+  }
+  .nav-pills a:hover {
+    color: #fff; border-color: rgba(255,176,32,.5);
+    background: rgba(255,176,32,.14);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     SEPARADOR
+     ══════════════════════════════════════════════════════════════ */
+  .divider { display: flex; align-items: center; gap: 14px; margin: 34px 0; }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--hair-strong), transparent); }
+  .divider-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: .6rem; font-weight: 600; letter-spacing: .26em; text-transform: uppercase;
+    color: rgba(162,162,178,.55); white-space: nowrap;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     BLOQUE DE ENTRADA
+     ══════════════════════════════════════════════════════════════ */
+  .intro {
+    position: relative; overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--hair);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 36px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.06);
+    animation: fade-up .85s .18s cubic-bezier(.22,1,.36,1) both;
+  }
+  /* Del ámbar al verde: el tiempo entrando y el dinero saliendo, que es de lo
+     que va la aplicación entera. */
+  .intro::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, var(--amber), var(--amber-deep), var(--green));
+  }
+  .intro p { color: var(--text-mid); }
+
+  /* Las tres garantías, en fila */
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+  .fact {
+    padding: 16px; border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.06);
+    transition: transform .25s, border-color .25s, background .25s;
+  }
+  .fact:hover { transform: translateY(-3px); border-color: rgba(61,214,140,.35); background: rgba(61,214,140,.06); }
+  .fact svg { display: block; margin-bottom: 8px; }
+  .fact strong { display: block; font-family: 'Outfit', sans-serif; font-size: .9rem; font-weight: 600; color: var(--text); }
+  .fact span { display: block; font-size: .8rem; line-height: 1.5; color: var(--text-dim); }
+
+  /* ══════════════════════════════════════════════════════════════
+     TARJETAS DE SECCIÓN
+     ══════════════════════════════════════════════════════════════ */
+  .card {
+    position: relative; overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--hair);
+    border-radius: 20px;
+    padding: 30px 32px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 36px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.07);
+    transition: border-color .3s, box-shadow .3s, transform .3s;
+  }
+  /* La entrada es una TRANSICIÓN, no una animación de fotogramas.
+     Con `@keyframes` + fill (`both` o `forwards`) el fotograma inicial —opacidad
+     0— se aplica mientras la animación está activa, y si esa animación no llega
+     a avanzar (pestaña en segundo plano, movimiento reducido, un motor que la
+     descarta) la tarjeta se queda invisible PARA SIEMPRE, pisando cualquier
+     `opacity: 1` estático. Una transición no tiene ese problema: si no se
+     ejecuta, el valor final se aplica y ya está. Lo peor que puede pasar es
+     que la tarjeta aparezca de golpe, nunca que no aparezca.
+
+     Y solo se activa si el script la habilita: sin JavaScript el documento se
+     lee entero, que es lo único que de verdad importa en una página legal. */
+  .js-reveal .card {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity .65s cubic-bezier(.22,1,.36,1),
+                transform .65s cubic-bezier(.22,1,.36,1),
+                border-color .3s, box-shadow .3s;
+  }
+  .js-reveal .card.visible { opacity: 1; transform: none; }
+  .card:hover {
+    border-color: var(--hair-strong);
+    box-shadow: 0 20px 54px rgba(0,0,0,.56), inset 0 1px 0 rgba(255,255,255,.13);
+    transform: translateY(-3px);
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+  }
+
+  .card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+
+  /* El número va dentro de una esfera con su marca de las 12: es un reloj,
+     que es el signo de toda la aplicación. */
+  .tick {
+    position: relative; flex-shrink: 0;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(140deg, var(--amber-deep), var(--amber));
+    display: grid; place-items: center;
+    font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700; color: #0B0B0F;
+    box-shadow: 0 3px 14px rgba(255,176,32,.36);
+  }
+  .tick::after {
+    content: ''; position: absolute; top: -5px; left: 50%;
+    width: 2px; height: 6px; border-radius: 1px;
+    background: var(--amber);
+    transform: translateX(-50%);
+  }
+
+  h2 { font-family: 'Outfit', sans-serif; font-size: 1.22rem; font-weight: 600; letter-spacing: -.01em; color: #fff; }
+
+  .card p { color: var(--text-mid); }
+  .card p + p { margin-top: 12px; }
+  .card strong { color: var(--amber-pale); font-weight: 600; }
+
+  ul { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  ul li { position: relative; padding-left: 21px; color: var(--text-mid); }
+  ul li::before {
+    content: ''; position: absolute; left: 0; top: .68em;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 8px rgba(255,176,32,.65);
+  }
+  ul li b { color: var(--text); font-weight: 600; }
+
+  /* ══════════════════════════════════════════════════════════════
+     AVISOS
+     ══════════════════════════════════════════════════════════════ */
+  .callout {
+    display: flex; align-items: flex-start; gap: 13px;
+    border-radius: 13px; padding: 15px 18px; margin-top: 16px;
+    font-size: .93rem;
+  }
+  .callout svg { flex-shrink: 0; margin-top: 3px; }
+  .callout.info { background: rgba(110,155,255,.10); border: 1px solid rgba(110,155,255,.28); }
+  .callout.info p { color: #B9CCFF; }
+  .callout.good { background: rgba(61,214,140,.08); border: 1px solid rgba(61,214,140,.28); }
+  .callout.good p { color: #9BE7C4; }
+  .callout.good strong { color: var(--green); }
+  .callout.warn { background: rgba(255,176,32,.08); border: 1px solid rgba(255,176,32,.3); }
+  .callout.warn p { color: #E8CE8E; }
+  .callout.warn strong { color: var(--amber); }
+
+  .subcard {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 14px; padding: 18px 20px; margin-top: 14px;
+  }
+  .subcard h3 {
+    font-family: 'Outfit', sans-serif; font-size: .98rem; font-weight: 600;
+    color: #fff; margin-bottom: 7px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .subcard h3::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--amber); flex-shrink: 0;
+  }
+  .subcard p { font-size: .92rem; }
+
+  a.inline { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255,176,32,.4); transition: color .2s, border-color .2s; }
+  a.inline:hover { color: var(--amber-pale); border-color: var(--amber-pale); }
+
+  /* ══════════════════════════════════════════════════════════════
+     TARJETA DE CONTACTO
+     ══════════════════════════════════════════════════════════════ */
+  .contact {
+    position: relative; overflow: hidden; text-align: center;
+    margin-top: 38px; padding: 50px 36px; border-radius: 26px;
+    background: linear-gradient(140deg, #17110A 0%, #3A2C10 46%, #6B4A08 100%);
+    border: 1px solid rgba(255,176,32,.3);
+    box-shadow: 0 26px 70px rgba(0,0,0,.6);
+  }
+  .contact::before {
+    content: ''; position: absolute; top: -90px; left: 50%; transform: translateX(-50%);
+    width: 380px; height: 260px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(255,176,32,.3), transparent 70%);
+  }
+  /* La esfera del reloj, también aquí: la marca no se abandona en el pie. */
+  .contact::after {
+    content: ''; position: absolute; inset: -40%; pointer-events: none; opacity: .35;
+    background-image: repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.10) 0deg 0.6deg, transparent 0.6deg 6deg);
+  }
+  .contact > * { position: relative; z-index: 1; }
+  .contact h2 { font-size: 1.75rem; margin-bottom: 8px; }
+  .contact > p { color: rgba(255,255,255,.74); margin-bottom: 26px; }
+
+  /* El botón es el mismo que el de comprar dentro de la app: ámbar macizo con
+     el texto oscuro. Es la acción, y aquí también tiene que pesar. */
+  .mailto {
+    display: inline-flex; align-items: center; gap: 11px;
+    padding: 14px 30px; border-radius: 15px;
+    background: var(--amber);
+    border: 1.5px solid rgba(255,255,255,.28);
+    color: #0B0B0F; text-decoration: none;
+    font-family: 'Outfit', sans-serif; font-size: .95rem; font-weight: 600; letter-spacing: .02em;
+    transition: all .3s;
+  }
+  .mailto:hover { background: var(--amber-pale); border-color: #fff; transform: translateY(-3px); box-shadow: 0 12px 34px rgba(255,176,32,.32); }
+
+  /* ══════════════════════════════════════════════════════════════
+     PIE
+     ══════════════════════════════════════════════════════════════ */
+  footer {
+    text-align: center; padding-top: 36px;
+    font-family: 'Outfit', sans-serif;
+    font-size: .68rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+    color: rgba(130,130,150,.85);
+  }
+  footer p + p { margin-top: 7px; }
+
+  @keyframes fade-down { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fade-up   { from { opacity: 0; transform: translateY(24px); }  to { opacity: 1; transform: translateY(0); } }
+
+  [hidden] { display: none !important; }
+
+  /* ══════════════════════════════════════════════════════════════
+     RESPONSIVE
+     ══════════════════════════════════════════════════════════════ */
+  @media (max-width: 640px) {
+    .wrapper { padding: 0 18px 70px; }
+    header { padding: 66px 0 38px; }
+    .card { padding: 22px 20px; border-radius: 17px; }
+    .intro { padding: 22px 20px 22px 26px; border-radius: 17px; }
+    .contact { padding: 36px 22px; border-radius: 20px; }
+    .facts { grid-template-columns: 1fr; }
+    .nav-pills { display: none; }
+    .mark { width: 88px; height: 88px; border-radius: 24px; }
+    .mark svg { width: 44px; height: 44px; }
+    .hours { height: 28vh; gap: 3px; }
+  }
+
+  /* Al imprimir no hay scroll que dispare nada: sin esto, cualquier tarjeta
+     que no se hubiera revelado saldría en blanco en el papel o en el PDF. */
+  @media print {
+    .js-reveal .card { opacity: 1 !important; transform: none !important; }
+    .scene, .langswitch { display: none !important; }
+    body { background: #fff; color: #111; }
+  }
+
+  /* Quien pide menos movimiento no debería recibir un reloj en marcha. Las
+     animaciones SMIL del SVG no las alcanza esta regla, así que las para el
+     script; ver el final del documento. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .js-reveal .card { opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ ESCENA DE FONDO ══════════════ -->
+<div class="scene" aria-hidden="true">
+  <div class="scene-sky"></div>
+  <div class="scene-glow"></div>
+
+  <svg class="scene-dials" id="dials" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice"
+       xmlns="http://www.w3.org/2000/svg">
+    <!-- Tres esferas concéntricas girando a distinta velocidad. El punteado
+         son las marcas de los minutos; el desfase entre anillos es lo que da
+         sensación de profundidad. -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate"
+                        from="0 600 150" to="360 600 150" dur="150s" repeatCount="indefinite" />
+      <circle class="dial" cx="600" cy="150" r="470" stroke-width="2" stroke-dasharray="2 22" opacity=".14" />
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="rotate"
+                        from="360 600 150" to="0 600 150" dur="95s" repeatCount="indefinite" />
+      <circle class="dial" cx="600" cy="150" r="330" stroke-width="2.5" stroke-dasharray="3 26" opacity=".2" />
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="rotate"
+                        from="0 600 150" to="360 600 150" dur="55s" repeatCount="indefinite" />
+      <circle class="dial" cx="600" cy="150" r="205" stroke-width="3" stroke-dasharray="3 20" opacity=".26" />
+      <!-- Un cuarto de circunferencia continuo: el segmento que "ya ha pasado". -->
+      <circle class="dial" cx="600" cy="150" r="205" stroke-width="3" stroke-dasharray="150 1300" opacity=".5" />
+    </g>
+
+    <!-- La aguja, que da una vuelta por minuto como la de un reloj real. -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate"
+                        from="0 600 150" to="360 600 150" dur="60s" repeatCount="indefinite" />
+      <line class="hand" x1="600" y1="150" x2="600" y2="-30" stroke-width="2.5" />
+    </g>
+  </svg>
+
+  <div class="sparks" id="sparks"></div>
+  <div class="hours" id="hours"></div>
+  <div class="scene-veil"></div>
+</div>
+
+<!-- ══════════════ SELECTOR DE IDIOMA ══════════════ -->
+<div class="langswitch">
+  <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+  <button type="button" data-set-lang="es" aria-pressed="false">ES</button>
+</div>
+
+<div class="wrapper">
+
+  <!-- ══════════════════════════════════════════════════════════
+       ENGLISH
+       ══════════════════════════════════════════════════════════ -->
+  <div class="lang" data-lang="en">
+
+    <header>
+      <div class="mark">
+        <svg width="52" height="52" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="19" fill="#FFFFFF" opacity=".95"/>
+          <path d="M24 24 L24 15" stroke="#8A5600" stroke-width="3.2" stroke-linecap="round" transform="rotate(58 24 24)"/>
+          <g>
+            <animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="20s" repeatCount="indefinite" />
+            <path d="M24 24 L24 10.5" stroke="#B87400" stroke-width="1.7" stroke-linecap="round"/>
+          </g>
+          <circle cx="24" cy="24" r="2.1" fill="#8A5600"/>
+        </svg>
+      </div>
+      <div class="app-name">Kairo</div>
+      <div class="app-sub">Time into money</div>
+      <h1>Privacy Policy</h1>
+      <div class="date-badge">Last updated: 5 September 2026</div>
+    </header>
+
+    <nav class="nav-pills" aria-label="Quick navigation">
+      <a href="#en1">01 · Responsibility</a>
+      <a href="#en2">02 · What is stored</a>
+      <a href="#en3">03 · Permissions</a>
+      <a href="#en4">04 · Third parties</a>
+      <a href="#en5">05 · Trial and purchase</a>
+      <a href="#en6">06 · Backups</a>
+      <a href="#en7">07 · Retention</a>
+      <a href="#en8">08 · Children</a>
+      <a href="#en9">09 · Changes</a>
+      <a href="#en10">10 · Contact</a>
+    </nav>
+
+    <div class="intro">
+      <p>Kairo runs entirely on your phone. Your jobs, shifts, expenses, debts and goals live in a
+         database inside the app itself. There are no accounts, no servers and no cloud — so there is
+         nothing of yours for us to read, sell or lose.</p>
+
+      <div class="facts">
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L20 6 v6 c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6Z"/>
+          </svg>
+          <strong>No account</strong>
+          <span>No sign-up, no email, no password.</span>
+        </div>
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>
+          </svg>
+          <strong>Nothing leaves the phone</strong>
+          <span>There is no server of ours to send it to.</span>
+        </div>
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><path d="M5.6 5.6 18.4 18.4"/>
+          </svg>
+          <strong>No trackers</strong>
+          <span>No ads, no analytics, no social SDKs.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">Policy sections</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="card" id="en1">
+      <div class="card-head"><span class="tick">1</span><h2>Who is responsible for this app</h2></div>
+      <p>Kairo is an independently developed personal-finance application. If you have any question
+         about this policy or about how your data is handled, you can write to:</p>
+      <div class="callout warn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB020" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 22 20 H2 Z"/><path d="M12 10v4"/><path d="M12 17.5v.01"/>
+        </svg>
+        <p><strong>Contact email:</strong> julioponsdev777@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="card" id="en2">
+      <div class="card-head"><span class="tick">2</span><h2>What the app stores</h2></div>
+      <p>Everything you create while using Kairo is stored <strong>exclusively in your device's local
+         storage</strong>, in a database that is part of the app itself. It is not sent to any server
+         of ours, because no such server exists.</p>
+      <ul>
+        <li><b>Jobs</b> — name, hourly rate, pay cycle, per-weekday rates and colour.</li>
+        <li><b>Shifts</b> — date, start and end time, breaks, the rate that applied at the time, and your notes.</li>
+        <li><b>Payslips</b> — the gross and net figures you type in so the app can compare them with what you actually worked.</li>
+        <li><b>Expenses, income and transfers</b> — amount, date, category, description and the account involved.</li>
+        <li><b>Accounts and debts</b> — their names, their starting balances and the payments you record against them.</li>
+        <li><b>Goals</b> — target amount, target date and the money you allocate to each one.</li>
+        <li><b>Categories</b> — including the ones you create, with their icon and colour.</li>
+        <li><b>Preferences</b> — language, currency, light or dark theme, reminder time and whether the app lock is on.</li>
+      </ul>
+      <div class="callout good">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="10.5" width="16" height="11" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>
+        </svg>
+        <p><strong>Kairo never asks for your bank details</strong> and has no connection of any kind to
+           your bank, card or any financial institution. Every figure in the app is one you typed in
+           yourself.</p>
+      </div>
+      <div class="callout info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E9BFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/>
+        </svg>
+        <p>The app does not access your location, contacts, camera, microphone, calendar or photos.</p>
+      </div>
+    </div>
+
+    <div class="card" id="en3">
+      <div class="card-head"><span class="tick">3</span><h2>Permissions the app requests</h2></div>
+      <ul>
+        <li><b>Biometrics or device passcode</b>, only if you switch on the app lock. The check is
+            performed by the operating system: Kairo receives a yes or a no, never your fingerprint or
+            your face.</li>
+        <li><b>Notifications</b>, for the optional daily reminder and for the ongoing notification shown
+            while a shift timer is running. Both are created on the device itself; nothing travels
+            through any push service.</li>
+        <li><b>One-off file access</b>, only when you export or import a backup. The system file picker
+            opens and the app receives only the file you choose: it does not browse your storage.</li>
+      </ul>
+      <p>The app also reads your device's language and region so it can start in the right language and
+         format dates and amounts correctly. That reading never leaves the device.</p>
+    </div>
+
+    <div class="card" id="en4">
+      <div class="card-head"><span class="tick">4</span><h2>Third-party services</h2></div>
+      <p>Kairo contains no advertising, analytics or social media kits, and it makes no network requests
+         of its own — none at all. Nothing is uploaded, synchronised or backed up to any service.</p>
+      <p>There is exactly one exception, and it only happens when you choose to buy the app or restore a
+         purchase:</p>
+
+      <div class="subcard">
+        <h3>Google Play and the App Store</h3>
+        <p>The purchase is processed entirely by the store on your device. Kairo asks the store for the
+           price of the product and for whether your account already owns it, and it receives an answer.
+           No data about you, your finances or your usage is sent in that exchange. See section 5.</p>
+      </div>
+    </div>
+
+    <div class="card" id="en5">
+      <div class="card-head"><span class="tick">5</span><h2>Free trial and purchase</h2></div>
+      <p>Kairo can be used free for 30 days. After that, continuing to use it requires a
+         <strong>one-time purchase</strong>. There is no subscription and nothing renews.</p>
+
+      <div class="subcard">
+        <h3>Payment</h3>
+        <p>Payments are handled entirely by Google Play or the App Store. <strong>Kairo never sees and
+           never stores your card details</strong> or any other payment data: the app only receives from
+           the store the confirmation of whether the purchase belongs to your account. The handling of
+           your payment data is governed by Google's or Apple's privacy policy, not by this one.</p>
+      </div>
+
+      <div class="subcard">
+        <h3>How the trial is counted</h3>
+        <p>To know how many days are left, the app stores on your device the date you first opened it and
+           the most recent date it has seen. These two dates never leave the device and are not linked to
+           any identity: there is nowhere for them to be sent.</p>
+        <p>They are kept in the system's secure storage (Keychain on iOS, Keystore on Android), which on
+           iOS is why they can outlive an uninstall — the trial is meant to be counted once per device,
+           not once per installation.</p>
+      </div>
+
+      <div class="subcard">
+        <h3>Restoring your purchase</h3>
+        <p>Because the purchase is tied to your store account and not to a particular handset, you can
+           restore it on a new device by signing in with the same account. To do that the app asks the
+           store whether that account owns the purchase; no personal data of yours is sent to us.</p>
+      </div>
+    </div>
+
+    <div class="card" id="en6">
+      <div class="card-head"><span class="tick">6</span><h2>Backups, export and import</h2></div>
+      <p>Kairo can write two kinds of file: a spreadsheet (CSV) of your activity, and a complete backup
+         (JSON) of every table in the app. Both are generated on your device.</p>
+      <ul>
+        <li>The file is created locally and the system share sheet opens so you can decide what to do with it.</li>
+        <li>Once you send that file somewhere — email, cloud drive, another app — it is outside Kairo and
+            this policy no longer governs it. It contains your financial data, so treat it accordingly.</li>
+        <li>Importing a backup <b>replaces</b> what the app currently holds.</li>
+      </ul>
+      <div class="callout info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E9BFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/>
+        </svg>
+        <p>Exporting exists so that you are never locked inside the app. Your data is yours, in a format
+           any spreadsheet or program can read.</p>
+      </div>
+    </div>
+
+    <div class="card" id="en7">
+      <div class="card-head"><span class="tick">7</span><h2>Retention and deletion</h2></div>
+      <p>Because everything is stored on your device, you are in control:</p>
+      <ul>
+        <li>You can delete any job, shift, expense, account, debt or goal from within the app.</li>
+        <li><b>Delete all my data</b>, in Settings, wipes the entire database in one action.</li>
+        <li>Uninstalling Kairo removes that database with it.</li>
+        <li>Files you created by exporting stay wherever you chose to save them, under your control.</li>
+      </ul>
+      <p>We keep no copies of anything, simply because we never receive your data in the first place.
+         The only values that can outlive an uninstall are the two trial dates described in section 5,
+         which say nothing about you or your finances.</p>
+    </div>
+
+    <div class="card" id="en8">
+      <div class="card-head"><span class="tick">8</span><h2>Children</h2></div>
+      <p>Kairo is a personal-finance tool intended for adults. It is not directed at children under 13
+         and does not knowingly collect information from them.</p>
+    </div>
+
+    <div class="card" id="en9">
+      <div class="card-head"><span class="tick">9</span><h2>Changes to this policy</h2></div>
+      <p>If the app changes and begins handling information differently, we will update this page along
+         with its last-updated date. Significant changes will also be noted on the app's store listing.</p>
+    </div>
+
+    <div class="contact" id="en10">
+      <h2>Contact</h2>
+      <p>Questions about this Privacy Policy? We're happy to help.</p>
+      <a class="mailto" href="mailto:julioponsdev777@gmail.com">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 7l9 6 9-6"/>
+        </svg>
+        julioponsdev777@gmail.com
+      </a>
+    </div>
+
+    <div class="divider" style="margin-top:38px">
+      <div class="divider-line"></div>
+      <div class="divider-text">End of document</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <footer>
+      <p>Kairo &nbsp;·&nbsp; © 2026 All rights reserved</p>
+      <p>Works offline &nbsp;·&nbsp; Your data never leaves your device</p>
+    </footer>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ESPAÑOL
+       ══════════════════════════════════════════════════════════ -->
+  <div class="lang" data-lang="es" hidden>
+
+    <header>
+      <div class="mark">
+        <svg width="52" height="52" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="19" fill="#FFFFFF" opacity=".95"/>
+          <path d="M24 24 L24 15" stroke="#8A5600" stroke-width="3.2" stroke-linecap="round" transform="rotate(58 24 24)"/>
+          <g>
+            <animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="20s" repeatCount="indefinite" />
+            <path d="M24 24 L24 10.5" stroke="#B87400" stroke-width="1.7" stroke-linecap="round"/>
+          </g>
+          <circle cx="24" cy="24" r="2.1" fill="#8A5600"/>
+        </svg>
+      </div>
+      <div class="app-name">Kairo</div>
+      <div class="app-sub">Tu tiempo, en dinero</div>
+      <h1>Política de Privacidad</h1>
+      <div class="date-badge">Última actualización: 5 de septiembre de 2026</div>
+    </header>
+
+    <nav class="nav-pills" aria-label="Navegación rápida">
+      <a href="#es1">01 · Responsable</a>
+      <a href="#es2">02 · Qué se guarda</a>
+      <a href="#es3">03 · Permisos</a>
+      <a href="#es4">04 · Terceros</a>
+      <a href="#es5">05 · Prueba y compra</a>
+      <a href="#es6">06 · Copias</a>
+      <a href="#es7">07 · Conservación</a>
+      <a href="#es8">08 · Menores</a>
+      <a href="#es9">09 · Cambios</a>
+      <a href="#es10">10 · Contacto</a>
+    </nav>
+
+    <div class="intro">
+      <p>Kairo funciona entera dentro de tu teléfono. Tus trabajos, jornadas, gastos, deudas y objetivos
+         viven en una base de datos de la propia aplicación. No hay cuentas, ni servidores, ni nube: no
+         existe nada tuyo que podamos leer, vender ni perder.</p>
+
+      <div class="facts">
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L20 6 v6 c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6Z"/>
+          </svg>
+          <strong>Sin cuenta</strong>
+          <span>Ni registro, ni correo, ni contraseña.</span>
+        </div>
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>
+          </svg>
+          <strong>Nada sale del teléfono</strong>
+          <span>No hay ningún servidor nuestro al que enviarlo.</span>
+        </div>
+        <div class="fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><path d="M5.6 5.6 18.4 18.4"/>
+          </svg>
+          <strong>Sin rastreadores</strong>
+          <span>Ni publicidad, ni analítica, ni redes sociales.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">Secciones</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="card" id="es1">
+      <div class="card-head"><span class="tick">1</span><h2>Quién responde de esta app</h2></div>
+      <p>Kairo es una aplicación de finanzas personales desarrollada de forma independiente. Si tienes
+         cualquier duda sobre esta política o sobre el tratamiento de tus datos, puedes escribir a:</p>
+      <div class="callout warn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFB020" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 22 20 H2 Z"/><path d="M12 10v4"/><path d="M12 17.5v.01"/>
+        </svg>
+        <p><strong>Correo de contacto:</strong> julioponsdev777@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="card" id="es2">
+      <div class="card-head"><span class="tick">2</span><h2>Qué información guarda la aplicación</h2></div>
+      <p>Toda la información que creas al usar Kairo se guarda <strong>exclusivamente en el
+         almacenamiento local de tu dispositivo</strong>, en una base de datos que forma parte de la
+         propia app. No se envía a ningún servidor nuestro, porque no existe tal servidor.</p>
+      <ul>
+        <li><b>Trabajos</b> — nombre, tarifa por hora, ciclo de cobro, tarifas por día de la semana y color.</li>
+        <li><b>Jornadas</b> — fecha, hora de entrada y de salida, descansos, la tarifa que se aplicó ese día y tus notas.</li>
+        <li><b>Nóminas</b> — las cifras de bruto y neto que escribes para que la app las compare con lo que trabajaste.</li>
+        <li><b>Gastos, ingresos y transferencias</b> — importe, fecha, categoría, descripción y la cuenta implicada.</li>
+        <li><b>Cuentas y deudas</b> — sus nombres, sus saldos iniciales y los pagos que registras sobre ellas.</li>
+        <li><b>Objetivos</b> — cantidad a alcanzar, fecha límite y el dinero que asignas a cada uno.</li>
+        <li><b>Categorías</b> — incluidas las que creas tú, con su icono y su color.</li>
+        <li><b>Preferencias</b> — idioma, moneda, tema claro u oscuro, hora del recordatorio y si el bloqueo está activo.</li>
+      </ul>
+      <div class="callout good">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="10.5" width="16" height="11" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>
+        </svg>
+        <p><strong>Kairo nunca te pide los datos de tu banco</strong> ni tiene conexión de ningún tipo
+           con tu entidad, tu tarjeta o cualquier institución financiera. Todas las cifras de la
+           aplicación las has escrito tú.</p>
+      </div>
+      <div class="callout info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E9BFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/>
+        </svg>
+        <p>La aplicación no accede a tu ubicación, tus contactos, tu cámara, tu micrófono, tu agenda ni a tus fotos.</p>
+      </div>
+    </div>
+
+    <div class="card" id="es3">
+      <div class="card-head"><span class="tick">3</span><h2>Permisos que pide la app</h2></div>
+      <ul>
+        <li><b>Biometría o código del dispositivo</b>, solo si activas el bloqueo de la aplicación. La
+            comprobación la hace el sistema operativo: Kairo recibe un sí o un no, nunca tu huella ni
+            tu cara.</li>
+        <li><b>Notificaciones</b>, para el recordatorio diario opcional y para el aviso permanente que se
+            muestra mientras tienes un cronómetro de jornada en marcha. Las dos se crean en el propio
+            dispositivo; no pasan por ningún servicio de notificaciones remotas.</li>
+        <li><b>Acceso puntual a archivos</b>, únicamente al exportar o importar una copia. Se abre el
+            selector de archivos del sistema y la app solo recibe el archivo que tú eliges: no explora
+            tu almacenamiento.</li>
+      </ul>
+      <p>La aplicación también lee el idioma y la región de tu dispositivo para arrancar en el idioma
+         correcto y dar formato a fechas e importes. Esa lectura no sale del dispositivo.</p>
+    </div>
+
+    <div class="card" id="es4">
+      <div class="card-head"><span class="tick">4</span><h2>Servicios de terceros</h2></div>
+      <p>Kairo no incorpora kits de publicidad, analítica ni redes sociales, y no realiza ninguna
+         petición de red por su cuenta: ni una. Nada se sube, se sincroniza ni se respalda en ningún
+         servicio.</p>
+      <p>Hay exactamente una excepción, y solo ocurre cuando decides comprar la aplicación o recuperar
+         una compra:</p>
+
+      <div class="subcard">
+        <h3>Google Play y App Store</h3>
+        <p>La compra la procesa por completo la tienda de tu dispositivo. Kairo le pregunta el precio del
+           producto y si tu cuenta ya lo tiene comprado, y recibe una respuesta. En ese intercambio no se
+           envía ningún dato sobre ti, sobre tus finanzas ni sobre tu uso de la app. Ver el punto 5.</p>
+      </div>
+    </div>
+
+    <div class="card" id="es5">
+      <div class="card-head"><span class="tick">5</span><h2>Periodo de prueba y compra</h2></div>
+      <p>Kairo se puede usar gratis durante 30 días. Después, seguir usándola requiere un
+         <strong>pago único</strong>. No hay suscripción ni nada que se renueve.</p>
+
+      <div class="subcard">
+        <h3>El pago</h3>
+        <p>Los pagos los gestiona íntegramente Google Play o la App Store. <strong>Kairo no ve ni guarda
+           los datos de tu tarjeta</strong> ni ningún otro dato de pago: la app solo recibe de la tienda
+           la confirmación de si la compra pertenece a tu cuenta. El tratamiento de tus datos de pago se
+           rige por la política de privacidad de Google o de Apple, no por esta.</p>
+      </div>
+
+      <div class="subcard">
+        <h3>Cómo se cuenta la prueba</h3>
+        <p>Para saber cuántos días quedan, la aplicación guarda en tu dispositivo la fecha en que la
+           abriste por primera vez y la fecha más reciente que ha visto. Esas dos fechas no salen nunca
+           del dispositivo y no están asociadas a ninguna identidad: no hay a dónde enviarlas.</p>
+        <p>Se conservan en el almacén seguro del sistema (Llavero en iOS, Keystore en Android), que es la
+           razón por la que en iOS pueden sobrevivir a una desinstalación: la prueba está pensada para
+           contarse una vez por dispositivo, no una vez por instalación.</p>
+      </div>
+
+      <div class="subcard">
+        <h3>Recuperar tu compra</h3>
+        <p>Como la compra está ligada a tu cuenta de la tienda y no a un teléfono concreto, puedes
+           recuperarla en un dispositivo nuevo iniciando sesión con la misma cuenta. Para ello la app
+           pregunta a la tienda si esa cuenta tiene la compra; a nosotros no nos llega ningún dato
+           personal tuyo.</p>
+      </div>
+    </div>
+
+    <div class="card" id="es6">
+      <div class="card-head"><span class="tick">6</span><h2>Copias, exportación e importación</h2></div>
+      <p>Kairo puede generar dos tipos de archivo: una hoja de cálculo (CSV) con tu actividad y una copia
+         de seguridad completa (JSON) de todas las tablas de la aplicación. Los dos se crean en tu
+         dispositivo.</p>
+      <ul>
+        <li>El archivo se genera en local y se abre el menú de compartir del sistema para que decidas qué hacer con él.</li>
+        <li>En cuanto envías ese archivo a algún sitio —correo, nube, otra aplicación— queda fuera de
+            Kairo y esta política ya no lo cubre. Contiene tus datos financieros: trátalo en consecuencia.</li>
+        <li>Importar una copia <b>sustituye</b> lo que la aplicación tenga en ese momento.</li>
+      </ul>
+      <div class="callout info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E9BFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/>
+        </svg>
+        <p>La exportación existe para que nunca quedes encerrado dentro de la aplicación. Tus datos son
+           tuyos, en un formato que puede leer cualquier hoja de cálculo o programa.</p>
+      </div>
+    </div>
+
+    <div class="card" id="es7">
+      <div class="card-head"><span class="tick">7</span><h2>Conservación y eliminación</h2></div>
+      <p>Como todo se guarda en tu dispositivo, el control lo tienes tú:</p>
+      <ul>
+        <li>Puedes borrar cualquier trabajo, jornada, gasto, cuenta, deuda u objetivo desde la propia aplicación.</li>
+        <li><b>Borrar todos mis datos</b>, en Ajustes, vacía la base de datos entera en una sola acción.</li>
+        <li>Al desinstalar Kairo se elimina esa base de datos con ella.</li>
+        <li>Los archivos que hayas generado al exportar quedan donde tú decidiste guardarlos, bajo tu control.</li>
+      </ul>
+      <p>No conservamos copias de nada, sencillamente porque nunca llegamos a recibir tus datos. Los
+         únicos valores que pueden sobrevivir a una desinstalación son las dos fechas de la prueba
+         descritas en el punto 5, que no dicen nada sobre ti ni sobre tus finanzas.</p>
+    </div>
+
+    <div class="card" id="es8">
+      <div class="card-head"><span class="tick">8</span><h2>Menores</h2></div>
+      <p>Kairo es una herramienta de finanzas personales pensada para personas adultas. No está dirigida
+         a menores de 13 años y no recoge de forma consciente información procedente de ellos.</p>
+    </div>
+
+    <div class="card" id="es9">
+      <div class="card-head"><span class="tick">9</span><h2>Cambios en esta política</h2></div>
+      <p>Si la aplicación cambia y pasa a tratar la información de otra manera, actualizaremos esta
+         página junto con su fecha de última actualización. Los cambios relevantes se indicarán también
+         en la ficha de la app en la tienda.</p>
+    </div>
+
+    <div class="contact" id="es10">
+      <h2>Contacto</h2>
+      <p>¿Dudas sobre esta política de privacidad? Estaremos encantados de ayudarte.</p>
+      <a class="mailto" href="mailto:julioponsdev777@gmail.com">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 7l9 6 9-6"/>
+        </svg>
+        julioponsdev777@gmail.com
+      </a>
+    </div>
+
+    <div class="divider" style="margin-top:38px">
+      <div class="divider-line"></div>
+      <div class="divider-text">Fin del documento</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <footer>
+      <p>Kairo &nbsp;·&nbsp; © 2026 Todos los derechos reservados</p>
+      <p>Funciona sin conexión &nbsp;·&nbsp; Tus datos no salen de tu dispositivo</p>
+    </footer>
+  </div>
+
+</div>
+
+<script>
+  // ── El campo de horas ──────────────────────────────────────────────────
+  // Se genera aquí y no a mano en el HTML: es decoración pura, y así el
+  // documento no carga con sesenta divs vacíos.
+  (function () {
+    var host = document.getElementById('hours');
+    if (!host) return;
+    // Menos barras y más anchas en móvil: cuarenta de 2 px son ruido, no ritmo.
+    var count = window.innerWidth < 640 ? 26 : 48;
+    for (var i = 0; i < count; i++) {
+      var bar = document.createElement('div');
+      bar.className = 'hour-bar';
+      // Una curva suave con ruido encima: ni plana ni un serrucho.
+      var wave = Math.sin(i / 4.2) * 0.28 + Math.sin(i / 1.7) * 0.12;
+      var height = Math.max(6, (0.42 + wave + Math.random() * 0.22) * 100);
+      bar.style.cssText =
+        'height:' + height.toFixed(1) + '%;' +
+        '--dur:' + (Math.random() * 4 + 4).toFixed(1) + 's;' +
+        '--lo:' + (Math.random() * 0.12 + 0.78).toFixed(2) + ';' +
+        '--hi:' + (Math.random() * 0.1 + 1.02).toFixed(2) + ';' +
+        'animation-delay:-' + (Math.random() * 6).toFixed(1) + 's;';
+      host.appendChild(bar);
+    }
+  })();
+
+  // ── Chispas ────────────────────────────────────────────────────────────
+  (function () {
+    var host = document.getElementById('sparks');
+    if (!host) return;
+    for (var i = 0; i < 60; i++) {
+      var s = document.createElement('div');
+      s.className = 'spark';
+      var size = (Math.random() * 2.2 + 0.8).toFixed(1);
+      // Verde de vez en cuando: el dinero apareciendo entre las horas.
+      var color = Math.random() < 0.22 ? '#3DD68C' : '#FFD98A';
+      s.style.cssText =
+        'width:' + size + 'px;height:' + size + 'px;' +
+        'background:' + color + ';' +
+        'top:' + (Math.random() * 88) + '%;left:' + (Math.random() * 100) + '%;' +
+        '--dur:' + (Math.random() * 3 + 2.2).toFixed(1) + 's;' +
+        '--lo:' + (Math.random() * 0.2 + 0.05).toFixed(2) + ';' +
+        '--hi:' + (Math.random() * 0.45 + 0.3).toFixed(2) + ';' +
+        'animation-delay:-' + (Math.random() * 4).toFixed(1) + 's;';
+      host.appendChild(s);
+    }
+  })();
+
+  // ── El selector se aparta mientras se lee ────────────────────────
+  (function () {
+    var bar = document.querySelector('.langswitch');
+    if (!bar) return;
+
+    var last = window.scrollY;
+
+    /*
+     * Sin `requestAnimationFrame` y sin cerrojo de «ya hay uno pendiente».
+     *
+     * Es la forma habitual de limitar un manejador de scroll, y aquí habría
+     * sido un fallo: si el navegador deja de pintar —pestaña de fondo, ventana
+     * tapada— el `rAF` no llega nunca, el cerrojo se queda echado y el selector
+     * se queda escondido PARA SIEMPRE. Ya pasó al probarlo.
+     *
+     * Y no hace falta: aquí dentro solo se leen dos números y se cambia una
+     * clase. No se mide nada del documento, así que no fuerza recálculos de
+     * maquetación, que es lo único que justificaría el rodeo.
+     */
+    window.addEventListener('scroll', function () {
+      var now = window.scrollY;
+      // Arriba del todo siempre se ve: es donde se elige el idioma.
+      if (now < 220) bar.classList.remove('tucked');
+      // El umbral de 6 px evita que el temblor de un trackpad lo haga parpadear.
+      else if (now > last + 6) bar.classList.add('tucked');
+      else if (now < last - 6) bar.classList.remove('tucked');
+      last = now;
+    }, { passive: true });
+  })();
+
+  // ── Movimiento reducido ────────────────────────────────────────────────
+  // El CSS ya frena sus propias animaciones, pero las de SMIL del SVG —los
+  // anillos y la aguja— viven fuera de su alcance. Se paran a mano.
+  (function () {
+    var query = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!query || !query.matches) return;
+    Array.prototype.forEach.call(document.querySelectorAll('svg'), function (svg) {
+      if (typeof svg.pauseAnimations === 'function') svg.pauseAnimations();
+    });
+  })();
+
+  // ── Aparición de las tarjetas al hacer scroll ──────────────────────────
+  var supportsReveal = 'IntersectionObserver' in window;
+  if (supportsReveal) document.documentElement.classList.add('js-reveal');
+
+  function showAll() {
+    Array.prototype.forEach.call(document.querySelectorAll('.card'), function (c) {
+      c.classList.add('visible');
+    });
+  }
+
+  // Red de seguridad: si a los 2,5 s algo no ha revelado las tarjetas (una
+  // pestaña en segundo plano, un observador que no llega a dispararse), se
+  // muestran todas. Vale más perder la animación que perder el documento.
+  setTimeout(showAll, 2500);
+
+  var io = supportsReveal && new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+        var el = entry.target;
+        setTimeout(function () { el.style.transitionDelay = ''; }, 900);
+      }
+    });
+  }, { threshold: 0.06 });
+
+  // Solo se observan las del idioma visible. Las del otro bloque están
+  // ocultas y nunca cruzarían el umbral, así que al cambiar de idioma hay
+  // que volver a pasar por aquí o aparecerían en blanco.
+  function revealCards() {
+    var visibleBlock = document.querySelector('.lang:not([hidden])');
+    if (!visibleBlock) return;
+    var cards = visibleBlock.querySelectorAll('.card:not(.visible)');
+    if (!io) { showAll(); return; }
+    Array.prototype.forEach.call(cards, function (c, i) {
+      c.style.transitionDelay = (i * 0.05) + 's';
+      io.observe(c);
+    });
+  }
+
+  // ── Idioma ─────────────────────────────────────────────────────────────
+  (function () {
+    var buttons = document.querySelectorAll('[data-set-lang]');
+
+    function apply(lang) {
+      document.documentElement.lang = lang;
+      Array.prototype.forEach.call(document.querySelectorAll('.lang'), function (block) {
+        block.hidden = block.dataset.lang !== lang;
+      });
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.setLang === lang));
+      });
+      try { localStorage.setItem('kairo-privacy-lang', lang); } catch (e) {}
+      revealCards();
+    }
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener('click', function () { apply(b.dataset.setLang); });
+    });
+
+    // Inglés por defecto: es el idioma principal de la ficha de la tienda.
+    // Solo lo cambia una elección previa del visitante, no el idioma de su
+    // navegador, para que lo que se ve por defecto sea siempre lo mismo.
+    var saved = null;
+    try { saved = localStorage.getItem('kairo-privacy-lang'); } catch (e) {}
+    apply(saved === 'es' ? 'es' : 'en');
+  })();
+</script>
+
+</body>
+</html>
