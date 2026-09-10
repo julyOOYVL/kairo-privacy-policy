@@ -1,10 +1,10 @@
-# Kairo - Legal Website
+# Quarza - Legal Website
 
-Welcome to the official repository for **Kairo**, the personal-finance app built on a single idea: *your time becomes money, and your money builds your future*. Every amount in the app can also be read as hours of your own work. This repository hosts the Privacy Policy website for the app.
+Welcome to the official repository for **Quarza**, the personal-finance app built on a single idea: *your time becomes money, and your money builds your future*. Every amount in the app can also be read as hours of your own work. This repository hosts the Privacy Policy website for the app.
 
-## About Kairo
+## About Quarza
 
-Kairo is a multilingual, offline-first personal-finance application available in English, Spanish, French and Chinese. It runs entirely on the device: no account, no sign-up, and no internet connection required. Its main features include:
+Quarza is a multilingual, offline-first personal-finance application available in English, Spanish, French and Chinese. It runs entirely on the device: no account, no sign-up, and no internet connection required. Its main features include:
 
 ### 1. Your time, priced
 
@@ -51,7 +51,7 @@ Kairo is a multilingual, offline-first personal-finance application available in
 
 ## Repository Purpose
 
-This repository contains the static website for Kairo's Privacy Policy. The website is hosted on GitHub Pages and provides a public link to comply with Google Play Store and App Store requirements.
+This repository contains the static website for Quarza's Privacy Policy. The website is hosted on GitHub Pages and provides a public link to comply with Google Play Store and App Store requirements.
 
 ## Publishing on GitHub Pages
 
