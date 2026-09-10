@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0B0B0F" />
 <title>Privacy Policy — Quarza</title>
 <meta name="description" content="Privacy policy for Quarza, the personal-finance app that measures your money in hours of work, runs offline and keeps everything on your device." />
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="apple-touch-icon" href="icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -177,11 +179,15 @@
      ══════════════════════════════════════════════════════════════ */
   header { padding: 74px 0 46px; text-align: center; animation: fade-down 1s cubic-bezier(.22,1,.36,1) both; }
 
+  /* El icono real de la aplicacion, no un dibujo parecido: es la misma imagen
+     que ve el usuario en su pantalla de inicio, y asi la pagina y la app dicen
+     lo mismo. `print-color-adjust` para que sobreviva al PDF: esta pagina se
+     adjunta en las fichas de las tiendas y a veces se imprime. */
   .mark {
     width: 106px; height: 106px; margin: 0 auto 22px;
     border-radius: 28px;
-    background: linear-gradient(150deg, #8A5600 0%, #D98A00 52%, #FFB020 100%);
-    display: grid; place-items: center;
+    background: url('icon.png') center / cover no-repeat;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
     box-shadow:
       0 0 0 1px rgba(255,255,255,.14),
       0 18px 46px rgba(0,0,0,.6),
@@ -479,7 +485,6 @@
     .facts { grid-template-columns: 1fr; }
     .nav-pills { display: none; }
     .mark { width: 88px; height: 88px; border-radius: 24px; }
-    .mark svg { width: 44px; height: 44px; }
     .hours { height: 28vh; gap: 3px; }
   }
 
@@ -557,17 +562,7 @@
   <div class="lang" data-lang="en">
 
     <header>
-      <div class="mark">
-        <svg width="52" height="52" viewBox="0 0 48 48" aria-hidden="true">
-          <circle cx="24" cy="24" r="19" fill="#FFFFFF" opacity=".95"/>
-          <path d="M24 24 L24 15" stroke="#8A5600" stroke-width="3.2" stroke-linecap="round" transform="rotate(58 24 24)"/>
-          <g>
-            <animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="20s" repeatCount="indefinite" />
-            <path d="M24 24 L24 10.5" stroke="#B87400" stroke-width="1.7" stroke-linecap="round"/>
-          </g>
-          <circle cx="24" cy="24" r="2.1" fill="#8A5600"/>
-        </svg>
-      </div>
+      <div class="mark" role="img" aria-label="Quarza"></div>
       <div class="app-name">Quarza</div>
       <div class="app-sub">Time into money</div>
       <h1>Privacy Policy</h1>
@@ -802,17 +797,7 @@
   <div class="lang" data-lang="es" hidden>
 
     <header>
-      <div class="mark">
-        <svg width="52" height="52" viewBox="0 0 48 48" aria-hidden="true">
-          <circle cx="24" cy="24" r="19" fill="#FFFFFF" opacity=".95"/>
-          <path d="M24 24 L24 15" stroke="#8A5600" stroke-width="3.2" stroke-linecap="round" transform="rotate(58 24 24)"/>
-          <g>
-            <animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="20s" repeatCount="indefinite" />
-            <path d="M24 24 L24 10.5" stroke="#B87400" stroke-width="1.7" stroke-linecap="round"/>
-          </g>
-          <circle cx="24" cy="24" r="2.1" fill="#8A5600"/>
-        </svg>
-      </div>
+      <div class="mark" role="img" aria-label="Quarza"></div>
       <div class="app-name">Quarza</div>
       <div class="app-sub">Tu tiempo, en dinero</div>
       <h1>Política de Privacidad</h1>

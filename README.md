@@ -57,13 +57,13 @@ This repository contains the static website for Quarza's Privacy Policy. The web
 
 The site is a single static file, so there is no build step:
 
-1. Create a public repository and push `index.html` and this `README.md` to the default branch.
+1. Create a public repository and push `index.html`, `icon.png` and this `README.md` to the default branch.
 2. In the repository, open **Settings → Pages**.
 3. Under *Build and deployment*, choose **Deploy from a branch**, select your default branch and the `/ (root)` folder, and save.
 4. After a minute the page is live at `https://<your-user>.github.io/<repository>/`.
 5. Paste that URL into the *Privacy Policy* field of the Google Play Console and App Store Connect listings.
 
-`index.html` must stay at the repository root and keep that exact name: GitHub Pages serves it as the index of the site.
+`index.html` must stay at the repository root and keep that exact name: GitHub Pages serves it as the index of the site. `icon.png` must sit beside it — the header mark and the browser-tab icon both point at it.
 
 ## Maintaining This Page
 
@@ -74,7 +74,8 @@ The site is a single static file, so there is no build step:
 * Update the "Last updated" date whenever the content changes — in both languages.
 * **Section 5 covers the 30-day trial and the one-time purchase.** If the pricing model ever changes — a subscription, a different trial length, a second product — that section and the app's store listing have to change with it.
 * The palette is taken from the app's own dark theme (`src/ui/theme/theme.ts`): amber is time, green is money generated. If the app's colours move, move these too.
-* The only external resource is the Google Fonts stylesheet. Everything else, including every icon, is inline SVG.
+* The page loads exactly two things from outside itself: the Google Fonts stylesheet and `icon.png`, which is the app's real launcher icon. Every other icon on the page is inline SVG.
+* `icon.png` is a copy of the app's `assets/icon.png`, resized to 384px. If the app icon changes, regenerate this one too or the page will show the old brand.
 
 ## What the policy actually claims
 
